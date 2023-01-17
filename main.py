@@ -42,3 +42,4 @@ def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
         file.write(str(dict_info))
 
     return dict_info
+
