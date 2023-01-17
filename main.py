@@ -21,7 +21,7 @@ def retry(func):
 
 
 @retry
-def get_weather(location: str, appid: str = KEY) -> dict:
+def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
     """
     Контроллер, для получения данных о погоде, в определенном городе
     """
@@ -29,11 +29,16 @@ def get_weather(location: str, appid: str = KEY) -> dict:
         coordinate = location.split(', ')
     else:
         api_req_coordinate = requests.get(f"http://api.openweathermap.org/geo/1.0/direct?"
-                                          f"q={location}&limit=5&appid={appid}")
+                                          f"q={location}&limit=5&appid={appid}&lang={lang}")
 
         coordinate = api_req_coordinate.json()[0]['lat'], api_req_coordinate.json()[0]['lon']
 
     weather_info = requests.get(f'https://api.openweathermap.org/data/2.5/weather?'
-                                f'lat={coordinate[0]}&lon={coordinate[1]}&&appid={appid}')
+                                f'lat={coordinate[0]}&lon={coordinate[1]}&&appid={appid}&lang={lang}')
 
-    return weather_info.json()
+    dict_info = weather_info.json()
+
+    with open('weather.txt', 'w') as file:
+        file.write(str(dict_info))
+
+    return dict_info
