@@ -1,5 +1,31 @@
 import requests
+import psycopg2
+from pydantic import BaseModel, BaseSettings, Field
 from settings import KEY
+
+
+class DataSettings(BaseSettings):
+    db_user: str = Field(..., env='DATABASE_USER')
+    db_password: str = Field(..., env='DATABASE_PASSWORD')
+    db_name: str = Field(..., env='DATABASE_DB')
+    db_port: int = Field(5432, env='DATABASE_PORT')
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+
+class ShowWeather(BaseModel):
+    city: str
+    weather: str
+    temp: int
+    cod: int
+
+    def __init__(self, **data):
+        super().__init__(**data)
+
+
+database_settings: dict = DataSettings().dict()
 
 
 def retry(func):
@@ -38,8 +64,33 @@ def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
 
     dict_info = weather_info.json()
 
-    with open('weather.txt', 'w') as file:
-        file.write(str(dict_info))
+    city = dict_info['name']
+    weather = dict_info['weather'][0]['description'].capitalize()
+    temp = int(round(dict_info['main']['temp'] - 273, 0))
+    cod = dict_info['cod']
 
-    return dict_info
+    res = ShowWeather(city=city, weather=weather, temp=temp, cod=cod)
 
+    add_weather(city=city, weather=weather, temp=temp, cod=cod)
+
+    return res.__dict__
+
+
+def add_weather(*args, **kwargs):
+    if kwargs['cod'] < 300:
+        with psycopg2.connect(
+            host="localhost",
+            database=database_settings['db_name'],
+            user=database_settings['db_user'],
+            password=database_settings['db_password'],
+        ) as conn:
+            with conn.cursor() as cur:
+                query = "INSERT INTO show_weather (weather, city, temperature) VALUES (%s, %s, %s)"
+                data = (kwargs['weather'], kwargs['city'], kwargs['temp'])
+                cur.execute(query, data)
+                conn.commit()
+    else:
+        pass
+
+
+print(get_weather(location='Moscow'))
