@@ -5,6 +5,9 @@ from settings import KEY
 
 
 class DataSettings(BaseSettings):
+    """
+    Валидация данных для подключения к базе данных
+    """
     db_user: str = Field(..., env='DATABASE_USER')
     db_password: str = Field(..., env='DATABASE_PASSWORD')
     db_name: str = Field(..., env='DATABASE_DB')
@@ -16,6 +19,9 @@ class DataSettings(BaseSettings):
 
 
 class ShowWeather(BaseModel):
+    """
+    Валидация данных для записи в базу данных
+    """
     city: str
     weather: str
     temp: int
@@ -66,7 +72,7 @@ def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
 
     city = dict_info['name']
     weather = dict_info['weather'][0]['description'].capitalize()
-    temp = int(round(dict_info['main']['temp'] - 273, 0))
+    temp = round(dict_info['main']['temp'] - 273, 0)
     cod = dict_info['cod']
 
     res = ShowWeather(city=city, weather=weather, temp=temp, cod=cod)
@@ -76,7 +82,10 @@ def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
     return res.__dict__
 
 
-def add_weather(*args, **kwargs):
+def add_weather(*args, **kwargs) -> None:
+    """
+    Проверка и запись в базу данных
+    """
     if kwargs['cod'] < 300:
         with psycopg2.connect(
             host="localhost",
@@ -91,6 +100,3 @@ def add_weather(*args, **kwargs):
                 conn.commit()
     else:
         pass
-
-
-print(get_weather(location='Moscow'))
