@@ -55,7 +55,7 @@ def get_weather(
 
 
 @connection_db
-def feature_weather(
+def fetch_weather(
         conn: psycopg2,
         data: DataSettings,
         city: str = '',
