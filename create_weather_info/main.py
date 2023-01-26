@@ -30,6 +30,7 @@ def get_weather(
     """
     Контроллер, для получения данных о погоде, в определенном городе
     """
+    print(f"python weather {location}")
     if not location[0].isalpha():
         coordinate = location.split(', ')
     else:
@@ -69,7 +70,6 @@ def fetch_weather(
     with conn.cursor() as cur:
         cur.execute(f"SELECT * FROM show_weather WHERE created_at + '1 hour' > now() AND city = '{info['city']}';")
         res = cur.fetchall()
-
         if res:
             result = '\n'.join(str(i) for i in res[0][1:-1])
             return result
@@ -78,5 +78,5 @@ def fetch_weather(
             data = (info['weather'], info['city'], info['temp'])
             cur.execute(query, data)
             conn.commit()
-            conn.close()
+
             return '\n'.join(str(i) for i in data)
