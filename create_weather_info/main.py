@@ -1,6 +1,5 @@
 import requests
 import psycopg2
-from settings import KEY
 
 from settings import DataSettings, ShowWeather
 
@@ -24,7 +23,11 @@ def retry(func):
 
 
 @retry
-def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
+def get_weather(
+        location: str,
+        appid: str,
+        lang: str = 'ru'
+) -> dict:
     """
     Контроллер, для получения данных о погоде, в определенном городе
     """
@@ -52,28 +55,15 @@ def get_weather(location: str, lang: str = 'ru', appid: str = KEY) -> dict:
     return res.__dict__
 
 
-'''def add_weather(data: DataSettings, res: dict) -> None:
-    """
-    Запись в базу данных
-    """
-    with psycopg2.connect(
-            host="localhost",
-            database=data.db_name,
-            user=data.db_user,
-            password=data.db_password,
-    ) as conn:
-        with conn.cursor() as cur:
-            query = "INSERT INTO show_weather (weather, city, temperature) VALUES (%s, %s, %s)"
-            data = (res['weather'], res['city'], res['temp'])
-            cur.execute(query, data)
-            conn.commit()'''
-
-
-def feature_weather(data: DataSettings, city: str = '', lang: str = 'ru'):
+def feature_weather(
+        data: DataSettings,
+        city: str = '',
+        lang: str = 'ru'
+):
     """
     Проверка на наличие данных в бд, и в случае чего запись данных в бд
     """
-    info = get_weather(city)
+    info = get_weather(location=city, appid=data.KEY)
 
     with psycopg2.connect(
             host="localhost",
@@ -82,13 +72,15 @@ def feature_weather(data: DataSettings, city: str = '', lang: str = 'ru'):
             password=data.db_password,
     ) as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT created_at FROM show_weather')
-            res = cur.fetchall()
-            if res < res_1:
-                return 'То что есть в бд, если не нужно создавать запись'
+            cur.execute(f"SELECT * FROM show_weather WHERE created_at + '1 hour' > now() AND city = '{info['city']}';")
+            result_from_db = cur.fetchall()
+
+            if result_from_db:
+                result = '\n'.join(str(i) for i in result_from_db[0][1:-1])
+                return result
             else:
                 query = "INSERT INTO show_weather (weather, city, temperature) VALUES (%s, %s, %s)"
                 data = (info['weather'], info['city'], info['temp'])
                 cur.execute(query, data)
                 conn.commit()
-                return 'Хорошо оформленные данные))'
+                return '\n'.join(str(i) for i in data)
