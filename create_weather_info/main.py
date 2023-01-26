@@ -78,4 +78,5 @@ def fetch_weather(
             data = (info['weather'], info['city'], info['temp'])
             cur.execute(query, data)
             conn.commit()
+            conn.close()
             return '\n'.join(str(i) for i in data)
