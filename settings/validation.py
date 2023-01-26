@@ -1,5 +1,5 @@
 from pydantic import BaseSettings, BaseModel, Field
-
+import psycopg2
 
 class DataSettings(BaseSettings):
     """
@@ -24,3 +24,15 @@ class ShowWeather(BaseModel):
     weather: str
     temp: int
     cod: int
+
+
+def connection_db(func):
+    def inner(*args, **kwargs):
+        with psycopg2.connect(
+                host="localhost",
+                database=kwargs['data'].db_name,
+                user=kwargs['data'].db_user,
+                password=kwargs['data'].db_password,
+        ) as conn:
+            return func(conn=conn, *args, **kwargs)
+    return inner
