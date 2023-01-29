@@ -4,12 +4,10 @@ import time
 def message(func):
     def inner(*args, **kwargs):
         print("---Start function---")
-
-        a = func(*args, **kwargs)
-
+        res = func(*args, **kwargs)
         print("---End function---")
 
-        return a
+        return res
 
     return inner
 
@@ -17,9 +15,11 @@ def message(func):
 def time_it(func):
     def inner(*args, **kwargs):
         now = time.time()
-        a = func(*args, **kwargs)
+        res = func(*args, **kwargs)
         print(f'Function time completed: {round(time.time() - now, 2)}')
-        return a
+
+        return res
+
     return inner
 
 
@@ -29,6 +29,7 @@ def catch_exception(func):
             return func(*args, **kwargs)
         except Exception as err:
             print(f'Error: {err}')
+
     return inner
 
 
