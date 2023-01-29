@@ -27,6 +27,9 @@ def parce_site(
                 searched_info.append(i.find(j).text)
     searched_info += [tree.attrib['Date']]
 
+    print_info = '\n'.join(i for i in searched_info)
+    print(print_info)
+    print('-----END-----')
 
     return searched_info
 

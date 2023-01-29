@@ -30,7 +30,6 @@ def get_weather(
     """
     Контроллер, для получения данных о погоде, в определенном городе
     """
-    print(f"python weather {location}")
     if not location[0].isalpha():
         coordinate = location.split(', ')
     else:
@@ -51,6 +50,10 @@ def get_weather(
         cod=dict_info['cod'],
     )
     res = ShowWeather(**result)
+
+    print_info = '\n'.join(str(i) for i in (result['city'], result['weather'], result['temp']))
+    print(print_info)
+    print('-------------')
 
     return res.__dict__
 

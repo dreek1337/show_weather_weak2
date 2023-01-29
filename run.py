@@ -8,16 +8,15 @@ script, city, id_valute = argv
 
 
 def main():
+    fetch_weather(
+        data=DataSettings(),
+        city=city
+    )
 
     add_value_in_db(
         url='http://www.cbr.ru/scripts/XML_daily.asp',
         id_valute=id_valute,
         data=DataSettings()
-    )
-
-    fetch_weather(
-        data=DataSettings(),
-        city=city
     )
 
 
