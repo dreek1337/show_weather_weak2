@@ -1,5 +1,6 @@
-from pydantic import BaseSettings, BaseModel, Field
+from pydantic import BaseSettings, BaseModel, Field, validator
 import psycopg2
+
 
 class DataSettings(BaseSettings):
     """
@@ -20,10 +21,20 @@ class ShowWeather(BaseModel):
     """
     Валидация данных для записи в базу данных
     """
-    city: str
+    name: str
     weather: str
-    temp: int
+    main: int
     cod: int
+
+    @validator('weather', pre=True)
+    def description(cls, info):
+
+        return info[0].get('description').capitalize()
+
+    @validator('main', pre=True)
+    def temp(cls, info):
+
+        return info.get('temp')
 
 
 def connection_db(func):

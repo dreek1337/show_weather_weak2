@@ -8,7 +8,7 @@ def parce_site(
         url: str,
         id_valute: str,
         params=None
-) -> list[str]:
+) -> dict:
     """
     Парсинг XML сайта
     """
@@ -18,35 +18,30 @@ def parce_site(
     response = request.urlopen(url).read()
     tree = ElementTree.fromstring(response)
 
-    searched_info = []
+    searched_info = {}
     for i in tree:
         if i.attrib['ID'] != id_valute:
             continue
         else:
             for j in params:
-                searched_info.append(i.find(j).text)
-    searched_info += [tree.attrib['Date']]
+                searched_info[j] = i.find(j).text
 
-    print_info = '\n'.join(i for i in searched_info)
-    print(print_info)
-    print('-----END-----')
+    searched_info['Date'] = tree.attrib['Date']
 
     return searched_info
 
 
-@connection_db
 def add_value_in_db(
-        conn: psycopg2,
-        data: DataSettings,
-        url: str,
-        id_valute: str
-) -> None:
+        conn: connection_db,
+        info: dict,
+) -> str:
     """
     Добавление параметров в базу данных
     """
-    info = parce_site(url=url, id_valute=id_valute)
     with conn.cursor() as cur:
         query = "INSERT INTO valute_table (valute_name, valute_value, date_value) VALUES (%s, %s, %s)"
-        data = (info[0], info[1], info[2])
+        data = (info.get('Name'), info.get('Value'), info['Date'])
         cur.execute(query, data)
         conn.commit()
+
+        return '\n'.join(i for i in data)
